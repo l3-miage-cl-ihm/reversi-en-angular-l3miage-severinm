@@ -1,10 +1,9 @@
 import { ChangeDetectionStrategy, Component, Signal, computed, signal } from '@angular/core';
-import { Matrix, initMatrix } from './data/utils';
+import { Matrix, initMatrix, IntRange } from './data/utils';
 import { Board, BoardtoString, GameState, TileCoords, Turn, cToString } from './data/reversi.definitions';
 import { produce } from 'immer';
 import { whereCanPlay } from './data/reversi.game';
 import { ReversiService } from './reversi.service';
-
 
 @Component({
   selector: 'app-root',
@@ -13,8 +12,77 @@ import { ReversiService } from './reversi.service';
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class AppComponent {
+  
+  public strInput = "";
 
-  constructor(private service: ReversiService) { }
+  constructor(private service: ReversiService) {}
 
-  boardToString = () => BoardtoString(this.service.sigGameState().board);
+  readonly strBoard = computed( () => BoardtoString(this.service.sigGameState().board) );
+
+  symbol() { return cToString(this.service.sigGameState().turn); }
+  player() { return this.service.sigGameState().turn; }
+
+  isInt8(n: number): undefined | IntRange<0, 8> {
+    if (Number.isInteger(n) && n >= 0 && n < 8) return n as IntRange<0, 8>
+    return undefined
+  }
+
+  play() {
+    const L = this.strInput.split(",");
+    if (L.length !== 2) {
+      console.error("Pas le bon format...")
+      return;
+    }
+    const [sx, sy] = L;
+    const x = this.isInt8( parseFloat(sx) )
+    const y = this.isInt8( parseFloat(sy) )
+    if (x !== undefined && y !== undefined)
+      this.service.play([x, y]);
+  }
+
+  readonly gs = computed<GameStateAll>(() => {
+    let gameState = this.service.sigGameState();
+    let listPlayable = whereCanPlay(gameState);
+    let matrice8x8deFalse = initMatrix(() => false, 8, 8);
+    
+    let Player1 = 0;
+    let Player2 = 0;
+    for (let row of gameState.board) {
+      for (let c of row) {
+        if (c === 'Player1') Player1++;
+        else if (c === 'Player2') Player2++;
+      }
+    }
+
+    let winner: undefined | "Drawn" | Turn = undefined;
+    if (listPlayable.length == 0) {
+      if (Player1 == Player2)
+        winner = "Drawn";
+      else if (Player1 > Player2)
+        winner = "Player1";
+      else
+        winner = "Player2";
+    }
+
+    return {
+      gameState,
+      listPlayable,
+      isPlayable: produce(matrice8x8deFalse, mutableMatrice => {
+        for (let coords of listPlayable)
+          mutableMatrice[coords[0]][coords[1]] = true;
+      }),
+      scores: { Player1, Player2 },
+      boardString: this.strBoard(),
+      winner
+    };
+  })
+}
+
+export interface GameStateAll {
+  readonly gameState: GameState;
+  readonly listPlayable: readonly TileCoords[];
+  readonly isPlayable: Matrix<boolean, 8, 8>;
+  readonly scores: Readonly<{ Player1: number, Player2: number }>;
+  readonly boardString: string;
+  readonly winner: undefined | "Drawn" | Turn;
 }

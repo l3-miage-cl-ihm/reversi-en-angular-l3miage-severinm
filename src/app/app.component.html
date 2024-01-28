@@ -1,3 +1,15 @@
 <h1>Reversi en Angular</h1>
 
-<pre>{{ boardToString() }}</pre>
+<pre>{{ strBoard() }}</pre>
+
+<div> {{ symbol() }}: {{ player() }} </div>
+
+Jouer en ligne,colonne (ex: "3, 2") 
+
+<form (submit)="play()">
+    <input name="strCoord" [(ngModel)]="strInput">
+</form>
+
+<pre>
+    {{ gs() | json }}
+</pre>
