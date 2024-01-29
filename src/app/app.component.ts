@@ -21,24 +21,22 @@ export class AppComponent {
 
   symbol() { return cToString(this.service.sigGameState().turn); }
   player() { return this.service.sigGameState().turn; }
+  case(i: number, j: number) { return this.gs().gameState.board.at(i)?.at(j) }
+  isPlayable(i: number, j: number) { return this.gs().isPlayable.at(i)?.at(j) }
 
   isInt8(n: number): undefined | IntRange<0, 8> {
     if (Number.isInteger(n) && n >= 0 && n < 8) return n as IntRange<0, 8>
     return undefined
   }
 
-  play() {
-    const L = this.strInput.split(",");
-    if (L.length !== 2) {
-      console.error("Pas le bon format...")
-      return;
-    }
-    const [sx, sy] = L;
-    const x = this.isInt8( parseFloat(sx) )
-    const y = this.isInt8( parseFloat(sy) )
+  play(i: number, j: number) {
+    const x = this.isInt8(i)
+    const y = this.isInt8(j)
     if (x !== undefined && y !== undefined)
       this.service.play([x, y]);
   }
+
+  restart() {this.service.restart()}
 
   readonly gs = computed<GameStateAll>(() => {
     let gameState = this.service.sigGameState();
