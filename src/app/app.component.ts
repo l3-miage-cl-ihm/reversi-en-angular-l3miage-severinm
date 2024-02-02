@@ -24,14 +24,11 @@ export class AppComponent {
   case(i: number, j: number) { return this.gs().gameState.board.at(i)?.at(j) }
   isPlayable(i: number, j: number) { return this.gs().isPlayable.at(i)?.at(j) }
 
-  isInt8(n: number): undefined | IntRange<0, 8> {
-    if (Number.isInteger(n) && n >= 0 && n < 8) return n as IntRange<0, 8>
-    return undefined
-  }
+  isInt8(n: number): n is IntRange<0, 8> { return Number.isInteger(n) && n >= 0 && n < 8; }
 
   play(i: number, j: number) {
-    const x = this.isInt8(i)
-    const y = this.isInt8(j)
+    const x = this.isInt8(i) ? i : undefined;
+    const y = this.isInt8(j) ? j : undefined;
     if (x !== undefined && y !== undefined)
       this.service.play([x, y]);
   }
