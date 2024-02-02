@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component, Signal, computed, signal } from '@angular/core';
-import { Matrix, initMatrix, IntRange } from './data/utils';
+import { Matrix, initMatrix, IntRange, range } from './data/utils';
 import { Board, BoardtoString, GameState, TileCoords, Turn, cToString } from './data/reversi.definitions';
 import { produce } from 'immer';
 import { whereCanPlay } from './data/reversi.game';
@@ -18,6 +18,7 @@ export class AppComponent {
   constructor(private service: ReversiService) {}
 
   readonly strBoard = computed( () => BoardtoString(this.service.sigGameState().board) );
+  readonly range8 = () => range(0,8);
 
   symbol() { return cToString(this.service.sigGameState().turn); }
   player() { return this.service.sigGameState().turn; }
